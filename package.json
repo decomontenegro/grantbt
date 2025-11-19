@@ -1,0 +1,43 @@
+{
+  "name": "grantbr",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Enterprise grant automation platform for Brazilian market",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "type-check": "turbo run type-check",
+    "db:generate": "pnpm --filter @grantbr/database db:generate",
+    "db:push": "pnpm --filter @grantbr/database db:push",
+    "db:migrate": "pnpm --filter @grantbr/database db:migrate",
+    "db:studio": "pnpm --filter @grantbr/database db:studio",
+    "db:seed": "pnpm --filter @grantbr/database db:seed",
+    "web:dev": "pnpm --filter @grantbr/web dev",
+    "web:build": "pnpm --filter @grantbr/web build",
+    "web:start": "pnpm --filter @grantbr/web start",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:install": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "@types/node": "^20.10.7",
+    "prettier": "^3.1.1",
+    "prettier-plugin-tailwindcss": "^0.5.9",
+    "turbo": "^1.11.2",
+    "typescript": "^5.3.3"
+  },
+  "packageManager": "pnpm@8.15.0",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}

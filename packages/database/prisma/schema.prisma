@@ -1,0 +1,474 @@
+// GrantBR - Database Schema
+// Multi-tenant grant automation platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER & AUTHENTICATION
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  emailVerified DateTime?
+  image         String?
+  password      String?   // Hashed password for email/password auth
+  role          UserRole  @default(USER)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  accounts      Account[]
+  sessions      Session[]
+  companies     CompanyMember[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  CONSULTANT
+}
+
+// ============================================
+// COMPANY & PROFILE
+// ============================================
+
+model Company {
+  id          String        @id @default(cuid())
+  cnpj        String        @unique
+  name        String
+  legalName   String?
+  sector      String?
+  size        CompanySize?
+  description String?       @db.Text
+  website     String?
+
+  // Address
+  city        String?
+  state       String?
+  country     String        @default("BR")
+
+  // Essential data for matching (structured fields)
+  foundationDate  DateTime?    // Data de fundação (para calcular idade)
+  cnaeCode        String?      // Código CNAE principal
+  employeeCount   Int?         // Número de funcionários
+  annualRevenue   Decimal?     @db.Decimal(12, 2) // Faturamento anual em BRL
+
+  // Company profile for matching
+  profileData Json?         // Structured company data (CompanyProfile type)
+  embedding   Float[]       // Vector embedding for semantic matching
+
+  // Onboarding
+  onboardingCompleted Boolean @default(false)
+  onboardingStep      Int     @default(0)
+
+  // Subscription
+  subscriptionTier    SubscriptionTier @default(FREE)
+  subscriptionStatus  String?
+  stripeCustomerId    String?           @unique
+  stripeSubscriptionId String?          @unique
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  members     CompanyMember[]
+  applications Application[]
+  projects    Project[]
+
+  @@map("companies")
+}
+
+model CompanyMember {
+  id        String           @id @default(cuid())
+  userId    String
+  companyId String
+  role      CompanyMemberRole @default(MEMBER)
+
+  createdAt DateTime         @default(now())
+
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company   Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, companyId])
+  @@map("company_members")
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  companyId   String
+  title       String
+  description String   @db.Text
+  status      String?  // "planning", "execution", "completed"
+  budget      Decimal? @db.Decimal(12, 2)
+
+  // Metadata for matching
+  keywords    String[]
+  embedding   Float[]  // Vector embedding
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("projects")
+}
+
+enum CompanySize {
+  MEI           // Microempreendedor Individual
+  MICRO         // < 10 employees
+  SMALL         // 10-49 employees
+  MEDIUM        // 50-249 employees
+  LARGE         // 250+ employees
+}
+
+enum CompanyMemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum SubscriptionTier {
+  FREE
+  PRO
+  BUSINESS
+  ENTERPRISE
+}
+
+// ============================================
+// GRANTS & FUNDING OPPORTUNITIES
+// ============================================
+
+model Grant {
+  id          String      @id @default(cuid())
+  externalId  String?     @unique // ID from source system
+
+  // Basic info
+  title       String
+  agency      GrantAgency
+  category    String?
+  description String      @db.Text
+  url         String?
+
+  // Funding details
+  valueMin    Decimal?    @db.Decimal(12, 2)
+  valueMax    Decimal?    @db.Decimal(12, 2)
+  currency    String      @default("BRL")
+
+  // Timeline
+  openDate    DateTime?
+  deadline    DateTime?
+  status      GrantStatus @default(OPEN)
+
+  // Eligibility criteria (structured)
+  eligibilityCriteria Json?
+
+  // For semantic matching
+  keywords    String[]
+  embedding   Float[]     // Vector embedding of description + criteria
+
+  // Metadata
+  scrapedAt   DateTime?
+  lastChecked DateTime?
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  applications Application[]
+
+  @@index([agency, status])
+  @@index([deadline])
+  @@map("grants")
+}
+
+enum GrantAgency {
+  FINEP
+  EMBRAPII
+  FAPESP
+  FAPERJ
+  FAPEMIG
+  FAPESP_SP
+  SEBRAE
+  BNDES
+  CNPq
+  CAPES
+  HORIZONTE_EUROPA
+  EIC
+  OTHER
+}
+
+enum GrantStatus {
+  UPCOMING
+  OPEN
+  CLOSING_SOON
+  CLOSED
+  CANCELLED
+}
+
+// ============================================
+// APPLICATIONS & PROPOSALS
+// ============================================
+
+model Application {
+  id          String            @id @default(cuid())
+  companyId   String
+  grantId     String
+
+  // Application status
+  status      ApplicationStatus @default(DRAFT)
+
+  // Content (versioned)
+  draftContent Json?            // Current draft of the proposal
+  finalContent Json?            // Submitted version
+  versions     ApplicationVersion[]
+
+  // Scores and evaluation
+  matchScore       Int?         // 0-100 match score from Matching Agent
+  eligibilityCheck Json?        // Results from Eligibility Agent
+  evaluationScore  Int?         // 0-100 score from Evaluator Agent
+  evaluationFeedback String?    @db.Text
+
+  // Submission tracking
+  submittedAt      DateTime?
+  submissionProtocol String?    // Protocol number from portal
+
+  // Approval tracking
+  approvedAt       DateTime?
+  rejectedAt       DateTime?
+  rejectionReason  String?      @db.Text
+
+  // Financial
+  requestedAmount  Decimal?     @db.Decimal(12, 2)
+  approvedAmount   Decimal?     @db.Decimal(12, 2)
+
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  // Relations
+  company     Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  grant       Grant             @relation(fields: [grantId], references: [id], onDelete: Cascade)
+  missions    Mission[]
+  reviews     ExpertReview[]
+
+  @@unique([companyId, grantId])
+  @@index([status])
+  @@map("applications")
+}
+
+model ApplicationVersion {
+  id            String      @id @default(cuid())
+  applicationId String
+  versionNumber Int
+  content       Json
+  changes       String?     @db.Text
+
+  createdAt     DateTime    @default(now())
+  createdBy     String?     // userId who created this version
+
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId, versionNumber])
+  @@map("application_versions")
+}
+
+enum ApplicationStatus {
+  DRAFT
+  IN_REVIEW
+  READY_TO_SUBMIT
+  SUBMITTED
+  UNDER_EVALUATION
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+// ============================================
+// EXPERT REVIEW (Human-in-the-Loop)
+// ============================================
+
+model ExpertReview {
+  id            String   @id @default(cuid())
+  applicationId String
+
+  reviewerId    String?  // External consultant ID
+  reviewerName  String?
+  reviewerEmail String?
+
+  status        String   @default("requested") // requested, in_progress, completed
+  feedback      String?  @db.Text
+  suggestions   Json?    // Structured suggestions
+
+  requestedAt   DateTime @default(now())
+  completedAt   DateTime?
+
+  // Pricing
+  price         Decimal? @db.Decimal(8, 2)
+  paid          Boolean  @default(false)
+
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@map("expert_reviews")
+}
+
+// ============================================
+// POST-APPROVAL: MISSIONS & DELIVERABLES
+// ============================================
+
+model Mission {
+  id            String        @id @default(cuid())
+  applicationId String
+
+  // Mission details
+  type          MissionType
+  title         String
+  description   String?       @db.Text
+
+  // Status
+  status        MissionStatus @default(PENDING)
+  priority      Int           @default(0)
+
+  // Timeline
+  dueDate       DateTime?
+  completedAt   DateTime?
+
+  // Auto-generated content
+  autoContent   Json?
+  humanReviewed Boolean       @default(false)
+
+  // Deliverables
+  deliverables  Deliverable[]
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  application   Application   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([status, dueDate])
+  @@map("missions")
+}
+
+model Deliverable {
+  id          String   @id @default(cuid())
+  missionId   String
+
+  title       String
+  description String?  @db.Text
+  fileUrl     String?
+  fileType    String?
+
+  uploadedAt  DateTime?
+  approvedAt  DateTime?
+
+  mission     Mission  @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  @@map("deliverables")
+}
+
+enum MissionType {
+  TECHNICAL_REPORT
+  FINANCIAL_REPORT
+  SALARY_VALIDATION
+  PAYMENT_REQUEST
+  MILESTONE_DELIVERY
+  COMPLIANCE_CHECK
+  OTHER
+}
+
+enum MissionStatus {
+  PENDING
+  IN_PROGRESS
+  UNDER_REVIEW
+  COMPLETED
+  DELAYED
+  BLOCKED
+}
+
+// ============================================
+// SYSTEM: JOBS & LOGS
+// ============================================
+
+model ScrapingJob {
+  id          String   @id @default(cuid())
+  agency      String
+  status      String   // "running", "completed", "failed"
+
+  grantsFound Int?
+  grantsNew   Int?
+  grantsUpdated Int?
+
+  error       String?  @db.Text
+
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+
+  @@map("scraping_jobs")
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  companyId   String?
+  action      String
+  entityType  String?  // "application", "grant", "mission", etc
+  entityId    String?
+  metadata    Json?
+
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([companyId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
