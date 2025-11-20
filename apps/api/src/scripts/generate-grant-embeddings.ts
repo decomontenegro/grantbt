@@ -15,7 +15,7 @@ async function generateGrantEmbeddings() {
 
     // Filter to those with empty or missing embeddings
     const grants = allGrants.filter(
-      (g) => !g.embedding || (Array.isArray(g.embedding) && g.embedding.length === 0)
+      (g: any) => !g.embedding || (Array.isArray(g.embedding) && g.embedding.length === 0)
     );
 
     console.log(`📊 Found ${grants.length} grants without embeddings (out of ${allGrants.length} total)`);

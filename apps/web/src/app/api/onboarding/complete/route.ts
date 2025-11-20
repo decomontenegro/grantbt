@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { prisma } from "@grantbr/database";
+import { authOptions } from "@/lib/auth";
+import { prisma, SubscriptionTier } from "@grantbr/database";
 import type { CompanyProfile } from "@grantbr/database/src/types";
 
 export async function POST(req: NextRequest) {
@@ -53,34 +53,17 @@ export async function POST(req: NextRequest) {
         embrapiiUnits: data.embrapiiPartners || [],
         otherPartners: [],
       },
-      intellectualProperty: {
-        patents: 0,
-        trademarks: 0,
-        softwareRegistrations: 0,
-      },
-      certifications: {
-        iso9001: false,
-        iso14001: false,
-        iso27001: false,
-        others: [],
-      },
-      interests: {
-        areas: data.interestAreas || [],
-        preferredAgencies: data.preferredAgencies || [],
-        budgetRange: data.budgetRange || "",
-      },
+      certifications: [],
+      interests: data.interestAreas || [],
       preferences: {
-        emailNotifications: data.emailNotifications ?? true,
-        deadlineAlerts: data.deadlineAlerts ?? true,
-        newMatches: data.newMatches ?? true,
-        weeklyDigest: data.weeklyDigest ?? false,
-        autoMatch: data.autoMatch ?? true,
-        minMatchScore: data.minMatchScore || 70,
+        preferredFundingTypes: [],
+        preferredAgencies: data.preferredAgencies || [],
+        priorityThemes: [],
       },
       impact: {
-        jobsToCreate: 0,
-        socialImpact: false,
-        environmentalImpact: false,
+        sustainabilityInitiatives: [],
+        odsAlignment: [],
+        socialImpact: "",
       },
     };
 
@@ -107,7 +90,7 @@ export async function POST(req: NextRequest) {
         embedding: [], // Will be populated by embedding service
         onboardingCompleted: true,
         onboardingStep: 8,
-        subscriptionTier: "FREE",
+        subscriptionTier: SubscriptionTier.FREE,
     };
 
     console.log("📋 Company data to be created:", JSON.stringify(companyData, null, 2));

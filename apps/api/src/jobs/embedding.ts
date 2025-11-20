@@ -29,7 +29,7 @@ async function generateCompanyEmbedding(companyId: string) {
 
   if (company.projects && company.projects.length > 0) {
     text += " Projetos: ";
-    text += company.projects.map((p) => `${p.title}: ${p.description}`).join(". ");
+    text += company.projects.map((p: any) => `${p.title}: ${p.description}`).join(". ");
   }
 
   const profileData = company.profileData as any || {};

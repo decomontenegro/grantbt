@@ -1,10 +1,11 @@
 import { Router } from "express";
+import type { Router as ExpressRouter } from "express";
 import { checkEligibility } from "../services/eligibility";
 import { generateProposal } from "../services/generator";
 import { evaluateProposal } from "../services/evaluator";
 import { generateEntityEmbedding } from "../jobs/embedding";
 
-export const aiRouter = Router();
+export const aiRouter: ExpressRouter = Router();
 
 // POST /api/ai/check-eligibility - Check eligibility
 aiRouter.post("/check-eligibility", async (req, res) => {

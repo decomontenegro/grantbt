@@ -87,15 +87,15 @@ export function Step4Interests({ data, onNext, onBack }: Step4Props) {
       budgetRange,
       hasUniversityPartners,
       universityPartners: hasUniversityPartners
-        ? universityPartners.split(",").map((s) => s.trim()).filter(Boolean)
+        ? universityPartners.split(",").map((s: string) => s.trim()).filter(Boolean)
         : [],
       hasICTPartners,
       ictPartners: hasICTPartners
-        ? ictPartners.split(",").map((s) => s.trim()).filter(Boolean)
+        ? ictPartners.split(",").map((s: string) => s.trim()).filter(Boolean)
         : [],
       hasEmbrapiiPartners,
       embrapiiPartners: hasEmbrapiiPartners
-        ? embrapiiPartners.split(",").map((s) => s.trim()).filter(Boolean)
+        ? embrapiiPartners.split(",").map((s: string) => s.trim()).filter(Boolean)
         : [],
     });
   };

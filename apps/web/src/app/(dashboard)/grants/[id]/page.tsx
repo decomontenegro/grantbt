@@ -37,6 +37,7 @@ interface Grant {
   keywords: string[];
   matchScore?: number;
   matchReasons?: string[];
+  eligibilityCriteria?: any;
 }
 
 export default function GrantDetailPage() {

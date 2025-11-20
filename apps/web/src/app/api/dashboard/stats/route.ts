@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@grantbr/database";
 import type { CompanyProfile, GrantEligibilityCriteria } from "@grantbr/database/src/types";
 
@@ -227,7 +227,7 @@ function calculateMatchScore(company: any, grant: any): { score: number } {
   // R&D Themes Match
   if (criteria.priorityThemes && profile?.rdThemes && profile.rdThemes.length > 0) {
     const themeMatches = criteria.priorityThemes.filter((grantTheme) =>
-      profile.rdThemes.some((companyTheme: string) =>
+      profile.rdThemes?.some((companyTheme: string) =>
         grantTheme.toLowerCase().includes(companyTheme.toLowerCase()) ||
         companyTheme.toLowerCase().includes(grantTheme.toLowerCase())
       )
@@ -273,7 +273,7 @@ function calculateMatchScore(company: any, grant: any): { score: number } {
 
   // Counterpart Capacity
   if (criteria.counterpartRequired && profile?.financial) {
-    if (profile.financial.hasCounterpartCapacity) {
+    if (profile.financial.hasCounterpartCapacity && profile.financial.typicalCounterpart !== undefined) {
       const canMeet = profile.financial.typicalCounterpart >= (criteria.counterpartPercentage || 0);
       if (canMeet) {
         score += 10;
@@ -311,7 +311,7 @@ function calculateMatchScore(company: any, grant: any): { score: number } {
   };
 }
 
-export async function GET() {
+export async function GET(): Promise<NextResponse> {
   try {
     const session = await getServerSession(authOptions);
 

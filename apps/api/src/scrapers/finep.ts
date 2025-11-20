@@ -40,11 +40,12 @@ export async function scrapeFINEP(): Promise<number> {
         ".call-item",
       ];
 
-      let elements: NodeListOf<Element> | null = null;
+      let elements: any[] | null = null;
 
       for (const selector of selectors) {
-        elements = document.querySelectorAll(selector);
-        if (elements.length > 0) break;
+        const doc = page as any;
+        elements = doc.querySelectorAll ? doc.querySelectorAll(selector) : [];
+        if (elements && elements.length > 0) break;
       }
 
       if (!elements || elements.length === 0) {
@@ -66,7 +67,7 @@ export async function scrapeFINEP(): Promise<number> {
         return items;
       }
 
-      elements.forEach((el) => {
+      elements.forEach((el: any) => {
         const titleEl = el.querySelector("h2, h3, .title, .chamada-titulo");
         const descEl = el.querySelector("p, .description, .chamada-descricao");
         const linkEl = el.querySelector("a");

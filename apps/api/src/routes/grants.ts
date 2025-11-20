@@ -1,8 +1,9 @@
 import { Router } from "express";
+import type { Router as ExpressRouter } from "express";
 import { prisma } from "@grantbr/database";
 import { runGrantCollection } from "../services/grant-scraper";
 
-export const grantsRouter = Router();
+export const grantsRouter: ExpressRouter = Router();
 
 // GET /api/grants - List all grants
 grantsRouter.get("/", async (req, res) => {

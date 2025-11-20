@@ -1,7 +1,8 @@
 import { Router } from "express";
+import type { Router as ExpressRouter } from "express";
 import { findMatchesForCompany } from "../services/matching";
 
-export const matchingRouter = Router();
+export const matchingRouter: ExpressRouter = Router();
 
 // POST /api/matching/find - Find matches for a company
 matchingRouter.post("/find", async (req, res) => {

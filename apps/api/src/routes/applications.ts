@@ -1,7 +1,8 @@
 import { Router } from "express";
+import type { Router as ExpressRouter } from "express";
 import { prisma } from "@grantbr/database";
 
-export const applicationsRouter = Router();
+export const applicationsRouter: ExpressRouter = Router();
 
 // GET /api/applications - List applications
 applicationsRouter.get("/", async (req, res) => {

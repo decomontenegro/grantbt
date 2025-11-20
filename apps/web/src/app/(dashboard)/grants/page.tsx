@@ -24,6 +24,7 @@ interface Grant {
   createdAt?: string;
   matchScore?: number;
   matchReasons?: string[];
+  eligibilityCriteria?: any;
 }
 
 export default function GrantsPage() {

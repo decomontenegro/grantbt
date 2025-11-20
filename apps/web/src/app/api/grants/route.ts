@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@grantbr/database";
 import type { CompanyProfile, GrantEligibilityCriteria } from "@grantbr/database/src/types";
 
@@ -195,7 +195,7 @@ function calculateMatchScore(company: any, grant: any): { score: number; reasons
   }
 
   // 4.1. CNAE Match (25 points) - CRITICAL for Brazilian grants
-  if (criteria.cnaeCodes && profile?.cnaes && profile.cnaes.length > 0) {
+  if (criteria.cnaeCodes && criteria.cnaeCodes.length > 0 && profile?.cnaes && profile.cnaes.length > 0) {
     const companyCnaes = profile.cnaes.map(c => c.code);
     const primaryCnae = profile.cnaes.find(c => c.isPrimary);
 
@@ -205,9 +205,9 @@ function calculateMatchScore(company: any, grant: any): { score: number; reasons
       reasons.push(`✅ Seu CNAE principal (${primaryCnae.code}) é elegível para este edital`);
     }
     // Check for exact match with secondary CNAEs
-    else if (companyCnaes.some(c => criteria.cnaeCodes.includes(c))) {
+    else if (companyCnaes.some(c => criteria.cnaeCodes?.includes(c))) {
       score += 15;
-      const matchedCnae = companyCnaes.find(c => criteria.cnaeCodes.includes(c));
+      const matchedCnae = companyCnaes.find(c => criteria.cnaeCodes?.includes(c));
       reasons.push(`✅ Um de seus CNAEs secundários (${matchedCnae}) é elegível`);
     }
     // Check for division/group match (e.g., 62.* matches 62.01-5-01)
@@ -243,7 +243,7 @@ function calculateMatchScore(company: any, grant: any): { score: number; reasons
   // 4.3. R&D Themes Match (15 points) - Important for FAPESP PIPE and similar
   if (criteria.priorityThemes && profile?.rdThemes && profile.rdThemes.length > 0) {
     const themeMatches = criteria.priorityThemes.filter((grantTheme) =>
-      profile.rdThemes.some((companyTheme: string) =>
+      profile.rdThemes?.some((companyTheme: string) =>
         grantTheme.toLowerCase().includes(companyTheme.toLowerCase()) ||
         companyTheme.toLowerCase().includes(grantTheme.toLowerCase())
       )
@@ -312,7 +312,7 @@ function calculateMatchScore(company: any, grant: any): { score: number; reasons
 
   // 6. Counterpart Capacity (10 points)
   if (criteria.counterpartRequired && profile?.financial) {
-    if (profile.financial.hasCounterpartCapacity) {
+    if (profile.financial.hasCounterpartCapacity && profile.financial.typicalCounterpart !== undefined) {
       const canMeet = profile.financial.typicalCounterpart >= (criteria.counterpartPercentage || 0);
       if (canMeet) {
         score += 10;

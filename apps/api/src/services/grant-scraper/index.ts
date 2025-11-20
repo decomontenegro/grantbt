@@ -147,7 +147,7 @@ export class GrantCollectionService {
         data: {
           title: scrapedGrant.title,
           description: scrapedGrant.description,
-          agency: scrapedGrant.agency,
+          agency: scrapedGrant.agency as any,
           category: scrapedGrant.category,
           valueMin: scrapedGrant.valueMin?.toString(),
           valueMax: scrapedGrant.valueMax?.toString(),
@@ -187,7 +187,7 @@ export class GrantCollectionService {
         const embedding = await generateGrantEmbedding({
           title: grant.title,
           description: grant.description,
-          category: grant.category,
+          category: grant.category || "",
           keywords: grant.keywords,
         });
 
