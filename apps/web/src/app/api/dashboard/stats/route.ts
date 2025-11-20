@@ -349,7 +349,7 @@ export async function GET(): Promise<NextResponse> {
     });
 
     // Calculate match scores and ratings for all grants
-    const grantsWithScores = grants.map((grant) => {
+    const grantsWithScores = grants.map((grant: any) => {
       const matchResult = calculateMatchScore(company, grant);
       const rating = calculateGrantRating(company, grant, matchResult.score);
       return {
