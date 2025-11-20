@@ -172,7 +172,7 @@ function calculateMatchScore(company: any, grant: any): { score: number } {
 
   // Sector/Keyword Match
   if (criteria.prioritySectors && company.sector) {
-    const sectorMatch = criteria.prioritySectors.some((sector) =>
+    const sectorMatch = criteria.prioritySectors.some((sector: string) =>
       company.sector.toLowerCase().includes(sector.toLowerCase()) ||
       sector.toLowerCase().includes(company.sector.toLowerCase())
     );
@@ -226,7 +226,7 @@ function calculateMatchScore(company: any, grant: any): { score: number } {
 
   // R&D Themes Match
   if (criteria.priorityThemes && profile?.rdThemes && profile.rdThemes.length > 0) {
-    const themeMatches = criteria.priorityThemes.filter((grantTheme) =>
+    const themeMatches = criteria.priorityThemes.filter((grantTheme: string) =>
       profile.rdThemes?.some((companyTheme: string) =>
         grantTheme.toLowerCase().includes(companyTheme.toLowerCase()) ||
         companyTheme.toLowerCase().includes(grantTheme.toLowerCase())
@@ -360,7 +360,7 @@ export async function GET(): Promise<NextResponse> {
     });
 
     // Sort by rating (best overall grants first)
-    grantsWithScores.sort((a, b) => b.rating - a.rating);
+    grantsWithScores.sort((a: any, b: any) => b.rating - a.rating);
 
     // Get applications count
     const applicationsCount = await prisma.application.count({
@@ -368,15 +368,15 @@ export async function GET(): Promise<NextResponse> {
     });
 
     // High match grants (>= 75%)
-    const highMatchGrants = grantsWithScores.filter(g => g.matchScore >= 75).length;
+    const highMatchGrants = grantsWithScores.filter((g: any) => g.matchScore >= 75).length;
 
     // Calculate average match score from top 10
     const avgMatchScore = grantsWithScores.length > 0
-      ? Math.round(grantsWithScores.slice(0, 10).reduce((sum, g) => sum + g.matchScore, 0) / Math.min(grantsWithScores.length, 10))
+      ? Math.round(grantsWithScores.slice(0, 10).reduce((sum: number, g: any) => sum + g.matchScore, 0) / Math.min(grantsWithScores.length, 10))
       : 0;
 
     // Get next deadline from top matches
-    const nextDeadlineGrant = grantsWithScores.find(g => g.deadline);
+    const nextDeadlineGrant = grantsWithScores.find((g: any) => g.deadline);
     const nextDeadline = nextDeadlineGrant?.deadline
       ? {
           days: Math.ceil(
@@ -387,7 +387,7 @@ export async function GET(): Promise<NextResponse> {
       : { days: 0, grantName: "N/A" };
 
     // Get top 3 recommended grants (sorted by rating)
-    const topGrants = grantsWithScores.slice(0, 3).map((grant) => ({
+    const topGrants = grantsWithScores.slice(0, 3).map((grant: any) => ({
       id: grant.id,
       title: grant.title,
       agency: grant.agency,
