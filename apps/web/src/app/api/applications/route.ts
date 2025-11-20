@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
     });
 
     // Format the response
-    const formattedApplications = applications.map((app) => ({
+    const formattedApplications = applications.map((app: any) => ({
       id: app.id,
       status: app.status,
       matchScore: app.matchScore,
