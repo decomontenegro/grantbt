@@ -4,6 +4,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "@grantbr/database";
+import type { Prisma, Company } from "@grantbr/database";
 import { compare } from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
@@ -88,14 +89,18 @@ export async function requireAuth() {
   return user;
 }
 
-export async function getUserCompanies(userId: string): Promise<any[]> {
-  const memberships = await prisma.companyMember.findMany({
+type CompanyMemberWithCompany = Prisma.CompanyMemberGetPayload<{
+  include: { company: true };
+}>;
+
+export async function getUserCompanies(userId: string): Promise<Company[]> {
+  const memberships: CompanyMemberWithCompany[] = await prisma.companyMember.findMany({
     where: { userId },
     include: {
       company: true,
     },
   });
-  return memberships.map((m) => m.company);
+  return memberships.map((membership) => membership.company);
 }
 
 export async function requireCompanyAccess(userId: string, companyId: string) {
