@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { cn } from "@/lib/utils";
 import { SessionProvider } from "@/components/providers/session-provider";
 
@@ -30,6 +31,7 @@ export default function RootLayout({
     <html lang="pt-BR" suppressHydrationWarning>
       <body className={cn(inter.className, "antialiased")}>
         <SessionProvider>{children}</SessionProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
