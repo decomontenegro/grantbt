@@ -18,6 +18,18 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: false, // Keep type checking enabled for safety
   },
+  // Include Prisma binaries in serverless bundle
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals.push({
+        '@prisma/client': 'commonjs @prisma/client',
+      });
+    }
+    return config;
+  },
+  outputFileTracingIncludes: {
+    '/api/**/*': ['../../node_modules/.pnpm/@prisma+client@*/node_modules/.prisma/client/**/*'],
+  },
 };
 
 module.exports = nextConfig;
