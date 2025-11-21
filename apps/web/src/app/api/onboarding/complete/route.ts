@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma, SubscriptionTier } from "@grantbr/database";
+import { prisma } from "@grantbr/database";
 import type { CompanyProfile } from "@grantbr/database/src/types";
 
 export async function POST(req: NextRequest) {
@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
         embedding: [], // Will be populated by embedding service
         onboardingCompleted: true,
         onboardingStep: 8,
-        subscriptionTier: SubscriptionTier.FREE,
+        subscriptionTier: "FREE" as any,
     };
 
     console.log("📋 Company data to be created:", JSON.stringify(companyData, null, 2));
