@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
     });
 
     // If user has a company, calculate match scores
-    let grantsWithScores = grants.map((grant) => {
+    let grantsWithScores = grants.map((grant: any) => {
       let matchScore = 0;
       let matchReasons: string[] = [];
 
@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
     });
 
     // Sort by match score descending
-    grantsWithScores.sort((a, b) => b.matchScore - a.matchScore);
+    grantsWithScores.sort((a: any, b: any) => b.matchScore - a.matchScore);
 
     return NextResponse.json({
       grants: grantsWithScores,
@@ -176,7 +176,7 @@ function calculateMatchScore(company: any, grant: any): { score: number; reasons
 
   // 4. Sector/Keyword Match (20 points)
   if (criteria.prioritySectors && company.sector) {
-    const sectorMatch = criteria.prioritySectors.some((sector) =>
+    const sectorMatch = criteria.prioritySectors.some((sector: string) =>
       company.sector.toLowerCase().includes(sector.toLowerCase()) ||
       sector.toLowerCase().includes(company.sector.toLowerCase())
     );
@@ -196,8 +196,8 @@ function calculateMatchScore(company: any, grant: any): { score: number; reasons
 
   // 4.1. CNAE Match (25 points) - CRITICAL for Brazilian grants
   if (criteria.cnaeCodes && criteria.cnaeCodes.length > 0 && profile?.cnaes && profile.cnaes.length > 0) {
-    const companyCnaes = profile.cnaes.map(c => c.code);
-    const primaryCnae = profile.cnaes.find(c => c.isPrimary);
+    const companyCnaes = profile.cnaes.map((c: any) => c.code);
+    const primaryCnae = profile.cnaes.find((c: any) => c.isPrimary);
 
     // Check for exact match with primary CNAE
     if (primaryCnae && criteria.cnaeCodes.includes(primaryCnae.code)) {
@@ -205,16 +205,16 @@ function calculateMatchScore(company: any, grant: any): { score: number; reasons
       reasons.push(`✅ Seu CNAE principal (${primaryCnae.code}) é elegível para este edital`);
     }
     // Check for exact match with secondary CNAEs
-    else if (companyCnaes.some(c => criteria.cnaeCodes?.includes(c))) {
+    else if (companyCnaes.some((c: string) => criteria.cnaeCodes?.includes(c))) {
       score += 15;
-      const matchedCnae = companyCnaes.find(c => criteria.cnaeCodes?.includes(c));
+      const matchedCnae = companyCnaes.find((c: string) => criteria.cnaeCodes?.includes(c));
       reasons.push(`✅ Um de seus CNAEs secundários (${matchedCnae}) é elegível`);
     }
     // Check for division/group match (e.g., 62.* matches 62.01-5-01)
     else {
-      const divisionMatch = criteria.cnaeCodes.some(grantCnae => {
+      const divisionMatch = criteria.cnaeCodes.some((grantCnae: string) => {
         const division = grantCnae.split('.')[0];
-        return companyCnaes.some(c => c.startsWith(division));
+        return companyCnaes.some((c: string) => c.startsWith(division));
       });
       if (divisionMatch) {
         score += 10;
@@ -233,7 +233,7 @@ function calculateMatchScore(company: any, grant: any): { score: number; reasons
 
   // 4.2. Excluded CNAEs (blocker)
   if (criteria.excludedActivities && profile?.cnaes && profile.cnaes.length > 0) {
-    const hasExcluded = profile.cnaes.some(c => criteria.excludedActivities!.includes(c.code));
+    const hasExcluded = profile.cnaes.some((c: any) => criteria.excludedActivities!.includes(c.code));
     if (hasExcluded) {
       score -= 50;
       reasons.push(`❌ BLOQUEIO: Seu CNAE está na lista de atividades excluídas deste grant`);
@@ -242,7 +242,7 @@ function calculateMatchScore(company: any, grant: any): { score: number; reasons
 
   // 4.3. R&D Themes Match (15 points) - Important for FAPESP PIPE and similar
   if (criteria.priorityThemes && profile?.rdThemes && profile.rdThemes.length > 0) {
-    const themeMatches = criteria.priorityThemes.filter((grantTheme) =>
+    const themeMatches = criteria.priorityThemes.filter((grantTheme: string) =>
       profile.rdThemes?.some((companyTheme: string) =>
         grantTheme.toLowerCase().includes(companyTheme.toLowerCase()) ||
         companyTheme.toLowerCase().includes(grantTheme.toLowerCase())
