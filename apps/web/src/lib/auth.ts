@@ -4,7 +4,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { prisma } from "@grantbr/database";
-import type { Prisma, Company } from "@grantbr/database";
+import type { Prisma } from "@grantbr/database";
 import { compare } from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
@@ -93,7 +93,9 @@ type CompanyMemberWithCompany = Prisma.CompanyMemberGetPayload<{
   include: { company: true };
 }>;
 
-export async function getUserCompanies(userId: string): Promise<Company[]> {
+type CompanyEntity = CompanyMemberWithCompany["company"];
+
+export async function getUserCompanies(userId: string): Promise<CompanyEntity[]> {
   const memberships: CompanyMemberWithCompany[] = await prisma.companyMember.findMany({
     where: { userId },
     include: {
