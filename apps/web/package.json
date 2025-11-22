@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && pnpm postbuild",
+    "postbuild": "cp -r ../../node_modules/.pnpm/@prisma+client@*/node_modules/.prisma/client .next/server/ 2>/dev/null || cp -r ../../packages/database/node_modules/.prisma/client .next/server/ 2>/dev/null || true",
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
